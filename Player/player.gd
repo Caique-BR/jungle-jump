@@ -1,5 +1,8 @@
 class_name Player extends CharacterBody2D
 
+signal life_changed
+signal died
+
 @export var gravity = 750
 @export var run_speed = 150
 @export var jump_speed = -300
@@ -10,6 +13,15 @@ class_name Player extends CharacterBody2D
 enum {IDLE, RUN, JUMP, HURT, DEAD}
 
 var state = IDLE
+var lives = 3: set = set_lives 
+
+func set_lives(value):
+	lives = value
+	life_changed.emit(lives)
+	if lives <= 0: change_state(DEAD)
+
+func hurt():
+	if state != HURT: change_state(HURT)
 
 func change_state(new_state):
 	state = new_state
@@ -20,12 +32,20 @@ func change_state(new_state):
 			player_animation.play("Run")
 		HURT:
 			player_animation.play("hurt")
+			velocity.y = -200
+			velocity.x = -100 * sign(velocity.x)
+			lives -= 1
+			await get_tree().create_timer(.5).timeout
+			change_state(IDLE)
 		JUMP:
 			player_animation.play("jump_up")
 		DEAD:
+			died.emit()
 			hide()
 
 func get_input(): # Handles the player input
+	if state == HURT: return
+	
 	var right = Input.is_action_pressed("right")
 	var left = Input.is_action_pressed("left")
 	var jump = Input.is_action_just_pressed("jump")
@@ -55,6 +75,7 @@ func reset(_position): # spanw point yet to be defined
 	position = _position
 	show()
 	change_state(IDLE)
+	lives = 3
 
 ## BUILT-IN
 
