@@ -3,7 +3,7 @@ class_name Player extends CharacterBody2D
 signal life_changed
 signal died
 
-@export var gravity = 750
+@export var gravity = 700
 @export var run_speed = 150
 @export var jump_speed = -300
 
